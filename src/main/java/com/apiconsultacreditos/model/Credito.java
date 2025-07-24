@@ -1,5 +1,9 @@
 package com.apiconsultacreditos.model;
 
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -30,6 +34,12 @@ public class Credito {
     public Credito() {
     }
     
+// Construtor para criação de objetos
+    @JsonCreator
+    public Credito(@JsonProperty("numeroCredito") String numeroCredito) {
+        this.numeroCredito = numeroCredito;
+    }
+
  // Método builder estático
     public static Builder builder() {
         return new Builder();

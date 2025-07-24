@@ -1,12 +1,15 @@
 version: '3.8'
+
 services:
-  postgres:
+  db:
     image: postgres:15
     container_name: creditos-db
+    env_file: 
+      - .env  # Carrega variáveis do arquivo .env
     environment:
-      POSTGRES_DB: creditosdb
+      POSTGRES_DB: CreditoDB
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: suasenha
+      POSTGRES_PASSWORD: ${DB_PASSWORD}  # Usa a variável do .env
     ports:
       - "5432:5432"
     volumes:
@@ -16,6 +19,80 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - creditos-network
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.3.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    env_file: 
+      - .env
+    networks:
+      - creditos-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.3.0
+    container_name: kafka
+    env_file: 
+      - .env  # Carrega variáveis do arquivo .env
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_ADMIN_PASSWORD: ${KAFKA_ADMIN_PASSWORD}  # Usa a variável do .env
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    depends_on:
+      - zookeeper
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server kafka:9092 --list || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    networks:
+      - creditos-network
+
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: api-creditos
+    env_file: 
+      - .env  # Carrega variáveis do arquivo .env
+    depends_on:
+      db:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: "docker"
+      DB_PASSWORD: ${DB_PASSWORD}  # Passa para a aplicação
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      # PORTA ALTERADA AQUI <<<<<<<<<<<<<<<<<<<<<
+    ports:
+      - "8080:8080"
+    networks:
+      - creditos-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
 volumes:
   postgres_data:
+
+networks:
+  creditos-network:
+    driver: bridge

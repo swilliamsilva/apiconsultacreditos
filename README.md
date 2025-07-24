@@ -28,8 +28,10 @@ Conta com mensageria Kafka, testes automatizados e suporte a PostgreSQL e MariaD
 
 ### Comandos de execução 
 
-- Executar via Docker Compose (recomendado)
-  
+- Executar via Docker Compose 
+    
+     docker ps
+
      docker-compose up -d   
      
    Isso iniciará:
@@ -43,15 +45,9 @@ Conta com mensageria Kafka, testes automatizados e suporte a PostgreSQL e MariaD
     mvn spring-boot:run
   
 - Rodar testes unitários e de integração
-
    
-  Para usar H2 (padrão):
-
-
-      ./mvnw test
-   ou
-        
         mvn test
+
         
    Para usar PostgreSQL local:
 
@@ -106,14 +102,14 @@ Execute os comandos abaixo em seu terminal, CLI do PostgreSQL ou via PgAdmin:
 
 sql
 
-CREATE DATABASE creditosdb;
+CREATE DATABASE CreditoDB;
 -- (opcional) Criação de usuário
 
--- CREATE USER postgres WITH PASSWORD 'senha';
+-- CREATE USER postgres WITH PASSWORD 'suasenha';
 
 -- Atribuição de permissões (se necessário)
 
--- GRANT ALL PRIVILEGES ON DATABASE creditosdb TO postgres;
+-- GRANT ALL PRIVILEGES ON DATABASE creditodb TO postgres;
 
  
 

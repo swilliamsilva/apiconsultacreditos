@@ -1,44 +1,67 @@
-// ==========================================
-// Classe: CreditoController.java
-// Projeto: api-consulta-creditos
-// ==========================================
 package com.apiconsultacreditos.controller;
 
 import com.apiconsultacreditos.dto.CreditoResponse;
+import com.apiconsultacreditos.event.ConsultaCreditoEvent;
 import com.apiconsultacreditos.kafka.ConsultaCreditoProducer;
 import com.apiconsultacreditos.mapper.CreditoMapper;
+import com.apiconsultacreditos.mapper.EventoMapper;
 import com.apiconsultacreditos.model.Credito;
 import com.apiconsultacreditos.service.CreditoService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/creditos")
 public class CreditoController {
 
+    private static final Logger logger = LoggerFactory.getLogger(CreditoController.class);
+    
     private final CreditoService creditoService;
     private final ConsultaCreditoProducer producer;
-    private final CreditoMapper mapper;
+    private final CreditoMapper creditoMapper;
+    private final EventoMapper eventoMapper;
 
     public CreditoController(CreditoService creditoService,
                              ConsultaCreditoProducer producer,
-                             CreditoMapper mapper) {
+                             CreditoMapper creditoMapper,
+                             EventoMapper eventoMapper) {
         this.creditoService = creditoService;
         this.producer = producer;
-        this.mapper = mapper;
+        this.creditoMapper = creditoMapper;
+        this.eventoMapper = eventoMapper;
+    }
+
+    // Novo endpoint para listar todos os créditos
+    @GetMapping
+    public ResponseEntity<List<CreditoResponse>> listarTodos() {
+        List<Credito> creditos = creditoService.listarTodos();
+        
+        // Envio assíncrono para Kafka
+        enviarParaKafkaAsync(creditos);
+        
+        List<CreditoResponse> responses = creditos.stream()
+                .map(creditoMapper::toResponse)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(responses);
     }
 
     @GetMapping("/nfse/{numeroNfse}")
     public ResponseEntity<List<CreditoResponse>> buscarPorNumeroNfse(@PathVariable String numeroNfse) {
         List<Credito> creditos = creditoService.consultarPorNfse(numeroNfse);
-
-        creditos.forEach(producer::sendCredito);
+        
+        // Envio assíncrono para Kafka
+        enviarParaKafkaAsync(creditos);
 
         List<CreditoResponse> responses = creditos.stream()
-                .map(mapper::toResponse)
-                .toList();
+                .map(creditoMapper::toResponse)
+                .collect(Collectors.toList());
 
         return ResponseEntity.ok(responses);
     }
@@ -51,7 +74,26 @@ public class CreditoController {
             return ResponseEntity.notFound().build();
         }
 
-        producer.sendCredito(credito);
-        return ResponseEntity.ok(mapper.toResponse(credito));
+        // Envio assíncrono para Kafka
+        enviarParaKafkaAsync(credito);
+        
+        return ResponseEntity.ok(creditoMapper.toResponse(credito));
+    }
+
+    // Método privado para reutilização do envio assíncrono
+    private void enviarParaKafkaAsync(List<Credito> creditos) {
+        creditos.forEach(this::enviarParaKafkaAsync);
+    }
+
+    private void enviarParaKafkaAsync(Credito credito) {
+        CompletableFuture.runAsync(() -> {
+            try {
+                ConsultaCreditoEvent evento = eventoMapper.toEvent(credito);
+                producer.sendEvent(evento);
+                logger.info("Evento enviado para Kafka: {}", evento.getNumeroCredito());
+            } catch (Exception e) {
+                logger.error("Erro ao enviar crédito para Kafka: {}", credito.getNumeroCredito(), e);
+            }
+        });
     }
 }
