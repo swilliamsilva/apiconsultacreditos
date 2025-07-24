@@ -12,8 +12,6 @@ public class Credito {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(name = "identificador")
-    private String identificador;
     
     private String numeroCredito;
     private String numeroNfse;
@@ -25,7 +23,7 @@ public class Credito {
     private BigDecimal valorFaturado;
     private BigDecimal valorDeducao;
     private BigDecimal baseCalculo;
-    private String tipoConsulta;
+   
  
     // Construtor privado para o builder
     // Construtor padrão (obrigatório para JPA)
@@ -91,16 +89,8 @@ public class Credito {
             return this;
         }
 
-        public Builder tipoConsulta(String tipoConsulta) {
-            credito.setTipoConsulta(tipoConsulta);
-            return this;
-        }
-
-        public Builder identificador(String identificador) {
-            credito.setIdentificador(identificador);
-            return this;
-        }
-
+        
+       
         public Credito build() {
             return credito;
         }
@@ -195,21 +185,5 @@ public class Credito {
         this.baseCalculo = baseCalculo;
     }
 
-    public String getTipoConsulta() {
-        return tipoConsulta;
-    }
-
-    public void setTipoConsulta(String tipoConsulta) {
-        this.tipoConsulta = tipoConsulta;
-    }
-
-    public String getIdentificador() {
-        return identificador;
-    }
-
-    public void setIdentificador(String identificador) {
-        this.identificador = identificador;
-    }
-
-	
+    	
 }

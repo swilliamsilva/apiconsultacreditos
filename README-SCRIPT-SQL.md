@@ -1,3 +1,13 @@
+No docker-compose para ver o banco de dados
+docker exec -it creditos-db psql -U postgres -d CreditoDB
+
+\dt para ver as tabelas
+\q  para sair
+
+No powershell deixe definida a senha para facilitar
+$env:DB_PASSWORD="suasenha"
+
+
 CREATE TABLE credito (
   id BIGSERIAL PRIMARY KEY,
   numero_credito VARCHAR(50) NOT NULL,

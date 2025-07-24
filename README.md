@@ -44,8 +44,31 @@ Conta com mensageria Kafka, testes automatizados e suporte a PostgreSQL e MariaD
   
 - Rodar testes unitários e de integração
 
-    mvn test
-  
+   
+  Para usar H2 (padrão):
+
+
+      ./mvnw test
+   ou
+        
+        mvn test
+        
+   Para usar PostgreSQL local:
+
+     mvn test -Dspring.profiles.active=test -Dspring.config.location=classpath:/application-postgres.properties
+
+     ./mvnw test -Dspring.test.profiles.active=test,postgres
+   ou no powershel
+   
+      mvn test "-Dspring.profiles.active=test -Dspring.config.location=classpath:/application-postgres.properties"
+      
+      mvn test "-Dspring.test.profiles.active=test,postgres" 
+     
+ ou teste automático
+ 
+     ./mvnw test -P postgres-test
+      mvn test -P postgres-test     
+      
 - Testes incluídos  
     
     CreditoServiceTest → Testes unitários com Mockito    
@@ -95,3 +118,8 @@ CREATE DATABASE creditosdb;
  
 
 Veja o [Script das tabelas do backend](README-SCRIPT-SQL.md)
+
+### Atualizações no projeto CI/CD
+
+Para fazer atualizações [veja este documento: ](README-GIT-FLOW.md) 
+

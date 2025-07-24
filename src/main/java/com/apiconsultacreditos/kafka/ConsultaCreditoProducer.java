@@ -1,4 +1,3 @@
-// ConsultaCreditoProducer.java
 package com.apiconsultacreditos.kafka;
 
 import com.apiconsultacreditos.model.Credito;
@@ -22,13 +21,9 @@ public class ConsultaCreditoProducer {
         kafkaTemplate.send(topicName, credito);
     }
 
-    public void publicarConsulta(String tipoConsulta, String identificador) {
-      
+    public void publicarConsulta(String numeroCredito) {
         Credito credito = new Credito();
-        credito.setTipoConsulta(tipoConsulta);
-        credito.setIdentificador(identificador);
-        
-    
+        credito.setNumeroCredito(numeroCredito);
         sendCredito(credito);
     }
 }
