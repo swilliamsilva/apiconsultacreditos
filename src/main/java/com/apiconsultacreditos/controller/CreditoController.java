@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/creditos")
@@ -47,7 +46,7 @@ public class CreditoController {
         
         List<CreditoResponse> responses = creditos.stream()
                 .map(creditoMapper::toResponse)
-                .collect(Collectors.toList());
+                .toList();  // Replaced with Stream.toList()
 
         return ResponseEntity.ok(responses);
     }
@@ -61,7 +60,7 @@ public class CreditoController {
 
         List<CreditoResponse> responses = creditos.stream()
                 .map(creditoMapper::toResponse)
-                .collect(Collectors.toList());
+                .toList();  // Replaced with Stream.toList()
 
         return ResponseEntity.ok(responses);
     }

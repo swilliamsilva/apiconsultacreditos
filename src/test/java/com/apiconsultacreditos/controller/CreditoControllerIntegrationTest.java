@@ -2,14 +2,21 @@ package com.apiconsultacreditos.controller;
 
 import com.apiconsultacreditos.model.Credito;
 import com.apiconsultacreditos.repository.CreditoRepository;
+import com.apiconsultacreditos.kafka.ConsultaCreditoProducer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.context.ApplicationContextInitializer;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.support.TestPropertySourceUtils;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -19,26 +26,14 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
-/**
- * 
- * 
- * Teste de Integração Real (CreditoControllerIntegrationTest):
-
-    Usa banco de dados real (PostgreSQL via Testcontainers)
-
-    Testa toda a stack da aplicação (controller -> service -> repository -> banco)
-
-    Ideal para validar fluxos completos e integração com banco de dados
-
-    Configuração mais complexa com containers Docker
-
-    **/
-
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
-public class CreditoControllerIntegrationTest {
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@ContextConfiguration(initializers = CreditoControllerIntegrationTest.DataSourceInitializer.class)
+class CreditoControllerIntegrationTest {
 
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine")
@@ -46,13 +41,27 @@ public class CreditoControllerIntegrationTest {
             .withUsername("test")
             .withPassword("test");
 
+    // Inicializador para forçar o uso do driver PostgreSQL
+    static class DataSourceInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+        @Override
+        public void initialize(ConfigurableApplicationContext applicationContext) {
+            TestPropertySourceUtils.addInlinedPropertiesToEnvironment(
+                applicationContext,
+                "spring.datasource.driver-class-name=org.postgresql.Driver",
+                "spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect",
+                "spring.sql.init.mode=never",
+                "spring.jpa.hibernate.ddl-auto=update",
+                "spring.jpa.defer-datasource-initialization=false",
+                "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration"
+            );
+        }
+    }
+
     @DynamicPropertySource
     static void registerPgProps(DynamicPropertyRegistry registry) {
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
-        registry.add("spring.datasource.driver-class-name", postgres::getDriverClassName);
-        registry.add("spring.jpa.database-platform", () -> "org.hibernate.dialect.PostgreSQLDialect");
     }
 
     @Autowired
@@ -61,8 +70,14 @@ public class CreditoControllerIntegrationTest {
     @Autowired
     private CreditoRepository creditoRepository;
 
+    @MockBean
+    private ConsultaCreditoProducer consultaCreditoProducer;
+
     @BeforeEach
     void setup() {
+        // Configura o mock para não fazer nada quando enviar mensagens
+        doNothing().when(consultaCreditoProducer).publicarConsulta(any(Credito.class));
+        
         creditoRepository.deleteAll();
         
         // Criar créditos de teste
@@ -80,9 +95,15 @@ public class CreditoControllerIntegrationTest {
         
         Credito credito2 = new Credito();
         credito2.setNumeroCredito("CRD-002");
-        credito2.setNumeroNfse("NFSE-001"); // Mesma NFSE para testar múltiplos créditos
+        credito2.setNumeroNfse("NFSE-001");
         credito2.setDataConstituicao(LocalDate.now());
-        // ... outros campos
+        credito2.setValorIssqn(new BigDecimal("1500.00"));
+        credito2.setTipoCredito("ISSQN");
+        credito2.setSimplesNacional(true);
+        credito2.setAliquota(new BigDecimal("5.0"));
+        credito2.setValorFaturado(new BigDecimal("30000.00"));
+        credito2.setValorDeducao(new BigDecimal("5000.00"));
+        credito2.setBaseCalculo(new BigDecimal("25000.00"));
         
         creditoRepository.saveAll(List.of(credito1, credito2));
     }

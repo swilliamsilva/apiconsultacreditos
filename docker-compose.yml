@@ -4,14 +4,12 @@ services:
   db:
     image: postgres:15
     container_name: creditos-db
-    env_file: 
-      - .env  # Carrega variáveis do arquivo .env
     environment:
       POSTGRES_DB: CreditoDB
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${DB_PASSWORD}  # Usa a variável do .env
+      POSTGRES_PASSWORD: suasenha  # SENHA FIXA - RECOMENDADO PARA TESTES
     ports:
-      - "5432:5432"
+      - "5432:5432"  
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -28,16 +26,12 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
-    env_file: 
-      - .env
     networks:
       - creditos-network
 
   kafka:
     image: confluentinc/cp-kafka:7.3.0
     container_name: kafka
-    env_file: 
-      - .env  # Carrega variáveis do arquivo .env
     environment:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
@@ -47,7 +41,6 @@ services:
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_ADMIN_PASSWORD: ${KAFKA_ADMIN_PASSWORD}  # Usa a variável do .env
     ports:
       - "9092:9092"
       - "29092:29092"
@@ -67,8 +60,6 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: api-creditos
-    env_file: 
-      - .env  # Carrega variáveis do arquivo .env
     depends_on:
       db:
         condition: service_healthy
@@ -76,9 +67,9 @@ services:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: "docker"
-      DB_PASSWORD: ${DB_PASSWORD}  # Passa para a aplicação
+      DB_PASSWORD: suasenha  # MESMA SENHA USADA NO POSTGRES
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      # PORTA ALTERADA AQUI <<<<<<<<<<<<<<<<<<<<<
+      SPRING_DATASOURCE_URL: jdbc:postgresql://creditos-db:5432/CreditoDB  # CORRIGIDO HOST
     ports:
       - "8080:8080"
     networks:

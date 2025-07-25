@@ -1,6 +1,8 @@
 package com.apiconsultacreditos.kafka;
 
 import com.apiconsultacreditos.event.ConsultaCreditoEvent;
+import com.apiconsultacreditos.model.Credito;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,15 +46,23 @@ public class ConsultaCreditoProducer {
         });
     }
 
-    public void publicarConsulta(String numeroCredito) {
-        if(numeroCredito == null || numeroCredito.isBlank()) {
-            logger.warn("Número de crédito inválido: {}", numeroCredito);
+    public void publicarConsulta(Credito credito) {
+        if(credito == null || credito.getNumeroCredito() == null || credito.getNumeroCredito().isBlank()) {
+            logger.warn("Número de crédito inválido: {}", credito);
             return;
         }
         
         ConsultaCreditoEvent event = new ConsultaCreditoEvent.Builder()
-            .numeroCredito(numeroCredito)
-            // Adicione outros campos necessários aqui
+            .numeroCredito(credito.getNumeroCredito())
+            .numeroNfse(credito.getNumeroNfse())
+            .dataConstituicao(credito.getDataConstituicao())
+            .valorIssqn(credito.getValorIssqn())
+            .tipoCredito(credito.getTipoCredito())
+            .simplesNacional(credito.isSimplesNacional())
+            .aliquota(credito.getAliquota())
+            .valorFaturado(credito.getValorFaturado())
+            .valorDeducao(credito.getValorDeducao())
+            .baseCalculo(credito.getBaseCalculo())
             .build();
             
         sendEvent(event);

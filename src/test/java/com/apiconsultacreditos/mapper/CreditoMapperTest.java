@@ -8,15 +8,15 @@ import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 
-import com.apiconsultacreditos.dto.CreditoResponse; // Alterado para CreditoResponse
+import com.apiconsultacreditos.dto.CreditoResponse;
 import com.apiconsultacreditos.model.Credito;
 
-public class CreditoMapperTest {
-
+class CreditoMapperTest {
+    
     private final CreditoMapper mapper = Mappers.getMapper(CreditoMapper.class);
 
     @Test
-    public void testEntityToDtoAndBack() {
+    void testEntityToDtoAndBack() {
         Credito credito = new Credito();
         credito.setNumeroCredito("CRD123");
         credito.setNumeroNfse("NF456");
@@ -28,38 +28,33 @@ public class CreditoMapperTest {
         credito.setValorFaturado(new BigDecimal("5000"));
         credito.setValorDeducao(new BigDecimal("500"));
         credito.setBaseCalculo(new BigDecimal("4500"));
-      
 
-        // Corrigido para CreditoResponse
         CreditoResponse dto = mapper.toResponse(credito);
         
-        // Assertivas (ajustado para métodos do CreditoResponse)
-        assertEquals(credito.getNumeroCredito(), dto.getNumeroCredito());
-        assertEquals(credito.getNumeroNfse(), dto.getNumeroNfse());
-        assertEquals(credito.getDataConstituicao(), dto.getDataConstituicao());
-        assertEquals(credito.getValorIssqn(), dto.getValorIssqn());
-        assertEquals(credito.getTipoCredito(), dto.getTipoCredito());
+        // Usar métodos de acesso do record (sem 'get')
+        assertEquals(credito.getNumeroCredito(), dto.numeroCredito());
+        assertEquals(credito.getNumeroNfse(), dto.numeroNfse());
+        assertEquals(credito.getDataConstituicao(), dto.dataConstituicao());
+        assertEquals(credito.getValorIssqn(), dto.valorIssqn());
+        assertEquals(credito.getTipoCredito(), dto.tipoCredito());
         assertEquals(credito.isSimplesNacional(), dto.simplesNacional());
-        assertEquals(credito.getAliquota(), dto.getAliquota());
-        assertEquals(credito.getValorFaturado(), dto.getValorFaturado());
-        assertEquals(credito.getValorDeducao(), dto.getValorDeducao());
-        assertEquals(credito.getBaseCalculo(), dto.getBaseCalculo());
-      
+        assertEquals(credito.getAliquota(), dto.aliquota());
+        assertEquals(credito.getValorFaturado(), dto.valorFaturado());
+        assertEquals(credito.getValorDeducao(), dto.valorDeducao());
+        assertEquals(credito.getBaseCalculo(), dto.baseCalculo());
 
-        // Usando o novo método toEntity()
         Credito reverted = mapper.toEntity(dto);
         
-        // Assertivas reversas
-        assertEquals(dto.getNumeroCredito(), reverted.getNumeroCredito());
-        assertEquals(dto.getNumeroNfse(), reverted.getNumeroNfse());
-        assertEquals(dto.getDataConstituicao(), reverted.getDataConstituicao());
-        assertEquals(dto.getValorIssqn(), reverted.getValorIssqn());
-        assertEquals(dto.getTipoCredito(), reverted.getTipoCredito());
+        // Usar getters tradicionais na entidade
+        assertEquals(dto.numeroCredito(), reverted.getNumeroCredito());
+        assertEquals(dto.numeroNfse(), reverted.getNumeroNfse());
+        assertEquals(dto.dataConstituicao(), reverted.getDataConstituicao());
+        assertEquals(dto.valorIssqn(), reverted.getValorIssqn());
+        assertEquals(dto.tipoCredito(), reverted.getTipoCredito());
         assertEquals(dto.simplesNacional(), reverted.isSimplesNacional());
-        assertEquals(dto.getAliquota(), reverted.getAliquota());
-        assertEquals(dto.getValorFaturado(), reverted.getValorFaturado());
-        assertEquals(dto.getValorDeducao(), reverted.getValorDeducao());
-        assertEquals(dto.getBaseCalculo(), reverted.getBaseCalculo());
-        
+        assertEquals(dto.aliquota(), reverted.getAliquota());
+        assertEquals(dto.valorFaturado(), reverted.getValorFaturado());
+        assertEquals(dto.valorDeducao(), reverted.getValorDeducao());
+        assertEquals(dto.baseCalculo(), reverted.getBaseCalculo());
     }
 }

@@ -3,17 +3,33 @@
 
 powershell
 
-# Build da aplicação
-mvn clean package
-
-# Parar de executar a aplicação / reiniciar
+# Parar de executar a aplicação e reiniciar 
 docker-compose down
+docker-compose down -v  # Remove containers e volumes antigos
 
 # Iniciar containers
 docker-compose up -d --build
 
 # Verificar status
 docker-compose ps
+docker-compose logs -f app  <<< Ver o log 
+
+# Build da aplicação para gerar o pacote
+ mvn clean package              <<< Para rodar no docker precisa ter uma jar na pasta target
+ mvn clean package -DskipTests  <<< Gerar o pacote pulando os testes 
+
+# Parar rodar local
+ mvn spring-boot:run
+
+# Para rodar o pacote jar
+java -jar target/apiconsultacreditos-0.0.1-SNAPSHOT.jar
+
+# Checkar os endpoints
+powershell
+
+# curl http://localhost:8080/api/creditos
+# curl http://localhost:8080/api/creditos/nfse/12345
+# curl http://localhost:8080/api/creditos/numero/CRD-2024-0001
 
 Para testar a aplicação:
 

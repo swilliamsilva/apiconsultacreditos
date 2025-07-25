@@ -1,8 +1,12 @@
 package com.apiconsultacreditos.event;
 
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -11,12 +15,6 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
-
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Objects;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ConsultaCreditoEvent implements Serializable {
@@ -42,7 +40,6 @@ public class ConsultaCreditoEvent implements Serializable {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private final LocalDateTime timestamp;
 
-    // Construtor para desserialização JSON
     @JsonCreator
     public ConsultaCreditoEvent(
             @JsonProperty("numeroCredito") String numeroCredito,
@@ -70,22 +67,22 @@ public class ConsultaCreditoEvent implements Serializable {
         this.timestamp = timestamp != null ? timestamp : LocalDateTime.now();
     }
 
-    // Construtor para o Builder
     private ConsultaCreditoEvent(Builder builder) {
-        this(builder.numeroCredito, 
-             builder.numeroNfse,
-             builder.dataConstituicao,
-             builder.valorIssqn,
-             builder.tipoCredito,
-             builder.simplesNacional,
-             builder.aliquota,
-             builder.valorFaturado,
-             builder.valorDeducao,
-             builder.baseCalculo,
-             null); // Timestamp será gerado automaticamente
+        this(
+            builder.numeroCredito, 
+            builder.numeroNfse,
+            builder.dataConstituicao,
+            builder.valorIssqn,
+            builder.tipoCredito,
+            builder.simplesNacional,
+            builder.aliquota,
+            builder.valorFaturado,
+            builder.valorDeducao,
+            builder.baseCalculo,
+            null
+        );
     }
 
-    // Getters
     public String getNumeroCredito() { return numeroCredito; }
     public String getNumeroNfse() { return numeroNfse; }
     public LocalDate getDataConstituicao() { return dataConstituicao; }
@@ -115,7 +112,6 @@ public class ConsultaCreditoEvent implements Serializable {
                 '}';
     }
 
-    @JsonDeserialize
     public static class Builder {
         private String numeroCredito;
         private String numeroNfse;
