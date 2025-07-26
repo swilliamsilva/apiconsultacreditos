@@ -4,14 +4,17 @@ services:
   db:
     image: postgres:15
     container_name: creditos-db
+    env_file: 
+      - .env  
     environment:
       POSTGRES_DB: CreditoDB
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: suasenha  # SENHA FIXA - RECOMENDADO PARA TESTES
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "5432:5432"  
+      - "5433:5432"  
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./src/main/resources/schema.sql:/docker-entrypoint-initdb.d/init.sql	  
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -65,11 +68,14 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
+    env_file: 
+      - .env  
     environment:
       SPRING_PROFILES_ACTIVE: "docker"
-      DB_PASSWORD: suasenha  # MESMA SENHA USADA NO POSTGRES
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      SPRING_DATASOURCE_URL: jdbc:postgresql://creditos-db:5432/CreditoDB  # CORRIGIDO HOST
+      SPRING_DATASOURCE_URL: jdbc:postgresql://creditos-db:5432/CreditoDB
+      SPRING_DATASOURCE_USERNAME: postgres  
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD} 
     ports:
       - "8080:8080"
     networks:

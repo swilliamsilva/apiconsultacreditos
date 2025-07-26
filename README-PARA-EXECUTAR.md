@@ -10,9 +10,12 @@ docker-compose down -v  # Remove containers e volumes antigos
 # Iniciar containers
 docker-compose up -d --build
 
+
 # Verificar status
 docker-compose ps
-docker-compose logs -f app  <<< Ver o log 
+docker-compose logs -f app  <<< Ver o log da aplicação
+docker logs creditos-db <<< Ver o log do banco de dados
+docker exec -it creditos-db psql -U postgres -d CreditoDB -c "\dt"   <<< Para ver se executou 
 
 # Build da aplicação para gerar o pacote
  mvn clean package              <<< Para rodar no docker precisa ter uma jar na pasta target
