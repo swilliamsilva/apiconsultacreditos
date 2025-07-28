@@ -10,8 +10,37 @@ docker-compose down -v  # Remove containers e volumes antigos
 # Iniciar containers
 docker-compose up -d --build
 
+Depois de subir aplicação no docker-compose faça outras verificações.
+Próximos passos para validação:
+    Teste o health check da aplicação:
+curl http://localhost:8080/actuator/health
 
-# Verificar status
+Resposta esperada:
+json
+
+{"status":"UP"}
+
+    Verifique os health checks específicos:
+bash
+# Banco de dados
+curl http://localhost:8080/actuator/health/db
+# Kafka
+curl http://localhost:8080/actuator/health/kafka
+    Teste a conexão com o Kafka:
+bash
+# Dentro do container do Kafka
+kafka-topics --bootstrap-server kafka:9092 --list
+    Verifique as tabelas no PostgreSQL:
+bash
+
+# Conecte ao banco
+docker exec -it creditos-db psql -U postgres -d CreditoDB
+# Liste as tabelas
+\dt
+
+
+
+#  Outros comandos de verificar status
 
       docker-compose ps
       docker-compose logs -f app  <<< Ver o log da aplicação
