@@ -12,16 +12,42 @@ docker-compose up -d --build
 
 
 # Verificar status
-docker-compose ps
-docker-compose logs -f app  <<< Ver o log da aplicação
-docker logs creditos-db <<< Ver o log do banco de dados
-docker exec -it creditos-db psql -U postgres -d CreditoDB -c "\dt"   <<< Para ver se executou 
+
+      docker-compose ps
+      docker-compose logs -f app  <<< Ver o log da aplicação
+      docker logs creditos-db <<< Ver o log do banco de dados
+
+      Verificações adicionais
+      =======================
+      docker exec -it creditos-db psql -U postgres -d CreditoDB -c "\dt"   <<< Para ver se executou 
+      docker exec -it api-creditos printenv DB_PASSWORD <<< Para ver se a senha do banco de dados 
+      docker exec -it api-creditos env <<< Listar toda a configuração
+Certifique-se de estar com o perfil docker ativo (-Dspring.profiles.active=docker ou no application-docker.yaml configurado corretamente) e execute:
+      mvn clean verify
+      docker run --name creditos-db -e POSTGRES_PASSWORD=suasenha -d postgres << Checar o BD
+      docker exec -it api-creditos ping creditos-db << Teste a rede entre os containers
+Testar a API com Postman / curl
+
+curl -X POST http://localhost:8080/credito \
+  -H "Content-Type: application/json" \
+  -d '{
+    "numeroCredito": "123",
+    "numeroNfse": "456",
+    "dataConstituicao": "2024-01-01",
+    "valorIssqn": 100.00,
+    "tipoCredito": "FIXO",
+    "simplesNacional": true,
+    "aliquota": 0.05,
+    "valorFaturado": 2000.00
+}'
+
 
 # Build da aplicação para gerar o pacote
  mvn clean package              <<< Para rodar no docker precisa ter uma jar na pasta target
  mvn clean package -DskipTests  <<< Gerar o pacote pulando os testes 
 
 # Parar rodar local
+ $env:DB_PASSWORD = "suasenha" << DEFINA a variavel de ambiente no docker antes de executar sempre
  mvn spring-boot:run
 
 # Para rodar o pacote jar

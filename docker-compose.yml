@@ -4,14 +4,12 @@ services:
   db:
     image: postgres:15
     container_name: creditos-db
+    command: ["postgres", "-c", "log_statement=all"]
     env_file: 
       - .env  
-    environment:
-      POSTGRES_DB: CreditoDB
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    
     ports:
-      - "5433:5432"  
+      - "5432:5432"  
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./src/main/resources/schema.sql:/docker-entrypoint-initdb.d/init.sql	  
@@ -53,8 +51,8 @@ services:
       test: ["CMD-SHELL", "kafka-topics --bootstrap-server kafka:9092 --list || exit 1"]
       interval: 10s
       timeout: 5s
-      retries: 10
-      start_period: 40s
+      retries: 30
+      start_period: 90s
     networks:
       - creditos-network
 
@@ -63,19 +61,14 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: api-creditos
+    env_file: 
+      - .env 
     depends_on:
       db:
         condition: service_healthy
       kafka:
         condition: service_healthy
-    env_file: 
-      - .env  
-    environment:
-      SPRING_PROFILES_ACTIVE: "docker"
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      SPRING_DATASOURCE_URL: jdbc:postgresql://creditos-db:5432/CreditoDB
-      SPRING_DATASOURCE_USERNAME: postgres  
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD} 
+    
     ports:
       - "8080:8080"
     networks:

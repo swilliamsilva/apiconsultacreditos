@@ -5,6 +5,7 @@ import com.apiconsultacreditos.model.Credito;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,12 +19,16 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+
+
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+
 
 @SpringBootTest
 @Testcontainers
@@ -59,7 +64,22 @@ public class KafkaProducerTest {
 
         consumer = consumerFactory.createConsumer();
         embeddedKafka.consumeFromAnEmbeddedTopic(consumer, "consulta-creditos-topic");
+
+    // Aguarda até que o consumer esteja pronto (no máximo 5s)
+    await().atMost(Duration.ofSeconds(5)).until(() -> consumer.subscription().contains("consulta-creditos-topic"));
+}
+   @AfterEach
+    void closeConsumer() {
+    if (consumer != null) {
+        consumer.close();
     }
+}
+
+  
+
+
+
+
 
     @Test
     void devePublicarEventoKafkaComSucesso() {
