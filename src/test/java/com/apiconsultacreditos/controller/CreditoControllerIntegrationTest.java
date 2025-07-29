@@ -80,33 +80,36 @@ class CreditoControllerIntegrationTest {
         
         creditoRepository.deleteAll();
         
-        // Criar créditos de teste
-        Credito credito1 = new Credito();
-        credito1.setNumeroCredito("CRD-001");
-        credito1.setNumeroNfse("NFSE-001");
-        credito1.setDataConstituicao(LocalDate.now());
-        credito1.setValorIssqn(new BigDecimal("1500.00"));
-        credito1.setTipoCredito("ISSQN");
-        credito1.setSimplesNacional(true);
-        credito1.setAliquota(new BigDecimal("5.0"));
-        credito1.setValorFaturado(new BigDecimal("30000.00"));
-        credito1.setValorDeducao(new BigDecimal("5000.00"));
-        credito1.setBaseCalculo(new BigDecimal("25000.00"));
-        
-        Credito credito2 = new Credito();
-        credito2.setNumeroCredito("CRD-002");
-        credito2.setNumeroNfse("NFSE-001");
-        credito2.setDataConstituicao(LocalDate.now());
-        credito2.setValorIssqn(new BigDecimal("1500.00"));
-        credito2.setTipoCredito("ISSQN");
-        credito2.setSimplesNacional(true);
-        credito2.setAliquota(new BigDecimal("5.0"));
-        credito2.setValorFaturado(new BigDecimal("30000.00"));
-        credito2.setValorDeducao(new BigDecimal("5000.00"));
-        credito2.setBaseCalculo(new BigDecimal("25000.00"));
-        
-        creditoRepository.saveAll(List.of(credito1, credito2));
+         Credito credito1 = Credito.builder()
+        .numeroCredito("123456")
+        .numeroNfse("7891011")
+        .dataConstituicao(LocalDate.of(2024, 2, 25))
+        .valorIssqn(new BigDecimal("1500.75"))
+        .tipoCredito("ISSQN")
+        .simplesNacional(true)
+        .aliquota(new BigDecimal("5.00"))
+        .valorFaturado(new BigDecimal("30000.00"))
+        .valorDeducao(new BigDecimal("5000.00"))
+        .baseCalculo(new BigDecimal("25000.00"))
+        .build();
+    
+    Credito credito2 = Credito.builder()
+        .numeroCredito("789012")
+        .numeroNfse("7891011")
+        .dataConstituicao(LocalDate.of(2024, 2, 26))
+        .valorIssqn(new BigDecimal("1200.50"))
+        .tipoCredito("ISSQN")
+        .simplesNacional(false)
+        .aliquota(new BigDecimal("4.50"))
+        .valorFaturado(new BigDecimal("25000.00"))
+        .valorDeducao(new BigDecimal("4000.00"))
+        .baseCalculo(new BigDecimal("21000.00"))
+        .build();
+    
+    creditoRepository.saveAll(List.of(credito1, credito2));
     }
+
+
 
     @Test
     void buscarPorNumeroCredito_DeveRetornarCredito() {

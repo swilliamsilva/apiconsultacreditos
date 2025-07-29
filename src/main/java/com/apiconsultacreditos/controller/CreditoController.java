@@ -9,10 +9,12 @@ import com.apiconsultacreditos.model.Credito;
 import com.apiconsultacreditos.service.CreditoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
@@ -20,7 +22,7 @@ import java.util.concurrent.CompletableFuture;
 public class CreditoController {
 
     private static final Logger logger = LoggerFactory.getLogger(CreditoController.class);
-    
+
     private final CreditoService creditoService;
     private final ConsultaCreditoProducer producer;
     private final CreditoMapper creditoMapper;
@@ -36,50 +38,43 @@ public class CreditoController {
         this.eventoMapper = eventoMapper;
     }
 
-    // Novo endpoint para listar todos os créditos
     @GetMapping
     public ResponseEntity<List<CreditoResponse>> listarTodos() {
         List<Credito> creditos = creditoService.listarTodos();
-        
-        // Envio assíncrono para Kafka
         enviarParaKafkaAsync(creditos);
-        
         List<CreditoResponse> responses = creditos.stream()
                 .map(creditoMapper::toResponse)
-                .toList();  // Replaced with Stream.toList()
-
+                .toList();
         return ResponseEntity.ok(responses);
     }
 
     @GetMapping("/nfse/{numeroNfse}")
     public ResponseEntity<List<CreditoResponse>> buscarPorNumeroNfse(@PathVariable String numeroNfse) {
         List<Credito> creditos = creditoService.consultarPorNfse(numeroNfse);
-        
-        // Envio assíncrono para Kafka
-        enviarParaKafkaAsync(creditos);
 
+        if (creditos.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+
+        enviarParaKafkaAsync(creditos);
         List<CreditoResponse> responses = creditos.stream()
                 .map(creditoMapper::toResponse)
-                .toList();  // Replaced with Stream.toList()
+                .toList();
 
         return ResponseEntity.ok(responses);
     }
 
     @GetMapping("/numero/{numeroCredito}")
     public ResponseEntity<CreditoResponse> buscarPorNumeroCredito(@PathVariable String numeroCredito) {
-        Credito credito = creditoService.consultarPorNumeroCredito(numeroCredito);
-
-        if (credito == null) {
-            return ResponseEntity.notFound().build();
+        Optional<Credito> creditoOpt = creditoService.consultarPorNumeroCredito(numeroCredito);
+        if (creditoOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
-
-        // Envio assíncrono para Kafka
+        Credito credito = creditoOpt.get();
         enviarParaKafkaAsync(credito);
-        
         return ResponseEntity.ok(creditoMapper.toResponse(credito));
     }
 
-    // Método privado para reutilização do envio assíncrono
     private void enviarParaKafkaAsync(List<Credito> creditos) {
         creditos.forEach(this::enviarParaKafkaAsync);
     }

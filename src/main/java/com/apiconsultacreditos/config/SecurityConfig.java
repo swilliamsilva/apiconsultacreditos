@@ -20,6 +20,7 @@ public class SecurityConfig {
     http
       .authorizeHttpRequests(authz -> authz
         .requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/info").permitAll()
+        // .requestMatchers("/api/creditos/**").permitAll() // Libera os endpoints da API
         .anyRequest().authenticated()
       )
       .httpBasic()

@@ -8,17 +8,18 @@ import org.springframework.stereotype.Component;
 public class EventoMapper {
 
     public ConsultaCreditoEvent toEvent(Credito credito) {
-        return new ConsultaCreditoEvent.Builder()
-            .numeroCredito(credito.getNumeroCredito())
-            .numeroNfse(credito.getNumeroNfse())
-            .dataConstituicao(credito.getDataConstituicao())
-            .valorIssqn(credito.getValorIssqn())
-            .tipoCredito(credito.getTipoCredito())
-            .simplesNacional(credito.isSimplesNacional())
-            .aliquota(credito.getAliquota())
-            .valorFaturado(credito.getValorFaturado())
-            .valorDeducao(credito.getValorDeducao())
-            .baseCalculo(credito.getBaseCalculo())
-            .build();
+        return new ConsultaCreditoEvent(
+            credito.getNumeroCredito(),
+            credito.getNumeroNfse(),
+            credito.getDataConstituicao(),
+            credito.getValorIssqn(),
+            credito.getTipoCredito(),
+            credito.isSimplesNacional(),
+            credito.getAliquota(),
+            credito.getValorFaturado(),
+            credito.getValorDeducao(),
+            credito.getBaseCalculo(),
+            null  // Timestamp será gerado automaticamente
+        );
     }
 }

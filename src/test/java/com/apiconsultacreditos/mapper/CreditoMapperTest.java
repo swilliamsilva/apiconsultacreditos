@@ -11,6 +11,9 @@ import org.mapstruct.factory.Mappers;
 import com.apiconsultacreditos.dto.CreditoResponse;
 import com.apiconsultacreditos.model.Credito;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 class CreditoMapperTest {
     
     private final CreditoMapper mapper = Mappers.getMapper(CreditoMapper.class);
@@ -57,4 +60,16 @@ class CreditoMapperTest {
         assertEquals(dto.valorDeducao(), reverted.getValorDeducao());
         assertEquals(dto.baseCalculo(), reverted.getBaseCalculo());
     }
+
+    @Test
+void toResponse_QuandoEntidadeNula_DeveRetornarNulo() {
+    CreditoResponse response = mapper.toResponse(null);
+    assertThat(response).isNull();
+}
+
+@Test
+void toEntity_QuandoDTONulo_DeveRetornarNulo() {
+    Credito entity = mapper.toEntity(null);
+    assertThat(entity).isNull();
+}
 }

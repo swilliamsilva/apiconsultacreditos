@@ -186,7 +186,8 @@
             <artifactId>jdbc</artifactId>
             <version>1.19.3</version> 
             <scope>test</scope>
-</dependency>
+        </dependency>
+
 
 
     </dependencies>
