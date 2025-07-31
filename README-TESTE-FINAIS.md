@@ -1,5 +1,12 @@
 README-TESTE-FINAIS.md
 
+# Consulta por NFSe
+curl -u devuser:devpass http://localhost:8080/api/creditos/nfse/1122334
+
+# Consulta por número de crédito
+curl -u devuser:devpass http://localhost:8080/api/creditos/numero/123456
+
+
 sequência de comandos para testar todos os endpoints usando Git Bash (Windows) e via localhost:
 Para executar rodei apliação no powershell com os comandos:
 
