@@ -5,10 +5,28 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ConsultaCreditoEvent implements Serializable {
+    
     private final String numeroCredito;
     private final String numeroNfse;
+    
+    @JsonSerialize(using = LocalDateSerializer.class)
+    @JsonDeserialize(using = LocalDateDeserializer.class)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private final LocalDate dataConstituicao;
+    
     private final BigDecimal valorIssqn;
     private final String tipoCredito;
     private final boolean simplesNacional;
@@ -16,39 +34,55 @@ public class ConsultaCreditoEvent implements Serializable {
     private final BigDecimal valorFaturado;
     private final BigDecimal valorDeducao;
     private final BigDecimal baseCalculo;
+    
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private final LocalDateTime timestamp;
 
-    // Construtor privado usado pelo Builder
+    @JsonCreator
+    public ConsultaCreditoEvent(
+            @JsonProperty("numeroCredito") String numeroCredito,
+            @JsonProperty("numeroNfse") String numeroNfse,
+            @JsonProperty("dataConstituicao") LocalDate dataConstituicao,
+            @JsonProperty("valorIssqn") BigDecimal valorIssqn,
+            @JsonProperty("tipoCredito") String tipoCredito,
+            @JsonProperty("simplesNacional") boolean simplesNacional,
+            @JsonProperty("aliquota") BigDecimal aliquota,
+            @JsonProperty("valorFaturado") BigDecimal valorFaturado,
+            @JsonProperty("valorDeducao") BigDecimal valorDeducao,
+            @JsonProperty("baseCalculo") BigDecimal baseCalculo,
+            @JsonProperty("timestamp") LocalDateTime timestamp) {
+        
+        this.numeroCredito = numeroCredito;
+        this.numeroNfse = numeroNfse;
+        this.dataConstituicao = dataConstituicao;
+        this.valorIssqn = valorIssqn;
+        this.tipoCredito = tipoCredito;
+        this.simplesNacional = simplesNacional;
+        this.aliquota = aliquota;
+        this.valorFaturado = valorFaturado;
+        this.valorDeducao = valorDeducao;
+        this.baseCalculo = baseCalculo;
+        this.timestamp = timestamp != null ? timestamp : LocalDateTime.now();
+    }
+
     private ConsultaCreditoEvent(Builder builder) {
-        this.numeroCredito = builder.numeroCredito;
-        this.numeroNfse = builder.numeroNfse;
-        this.dataConstituicao = builder.dataConstituicao;
-        this.valorIssqn = builder.valorIssqn;
-        this.tipoCredito = builder.tipoCredito;
-        this.simplesNacional = builder.simplesNacional;
-        this.aliquota = builder.aliquota;
-        this.valorFaturado = builder.valorFaturado;
-        this.valorDeducao = builder.valorDeducao;
-        this.baseCalculo = builder.baseCalculo;
-        this.timestamp = LocalDateTime.now();
+        this(
+            builder.numeroCredito, 
+            builder.numeroNfse,
+            builder.dataConstituicao,
+            builder.valorIssqn,
+            builder.tipoCredito,
+            builder.simplesNacional,
+            builder.aliquota,
+            builder.valorFaturado,
+            builder.valorDeducao,
+            builder.baseCalculo,
+            null
+        );
     }
 
-    // Construtor vazio necessário para serialização
-    public ConsultaCreditoEvent() {
-        this.timestamp = LocalDateTime.now();
-        this.numeroCredito = null;
-        this.numeroNfse = null;
-        this.dataConstituicao = null;
-        this.valorIssqn = null;
-        this.tipoCredito = null;
-        this.simplesNacional = false;
-        this.aliquota = null;
-        this.valorFaturado = null;
-        this.valorDeducao = null;
-        this.baseCalculo = null;
-    }
-
-    // Getters (mantidos iguais)
     public String getNumeroCredito() { return numeroCredito; }
     public String getNumeroNfse() { return numeroNfse; }
     public LocalDate getDataConstituicao() { return dataConstituicao; }
@@ -61,7 +95,23 @@ public class ConsultaCreditoEvent implements Serializable {
     public BigDecimal getBaseCalculo() { return baseCalculo; }
     public LocalDateTime getTimestamp() { return timestamp; }
 
-    // Classe Builder
+    @Override
+    public String toString() {
+        return "ConsultaCreditoEvent{" +
+                "numeroCredito='" + numeroCredito + '\'' +
+                ", numeroNfse='" + numeroNfse + '\'' +
+                ", dataConstituicao=" + dataConstituicao +
+                ", valorIssqn=" + valorIssqn +
+                ", tipoCredito='" + tipoCredito + '\'' +
+                ", simplesNacional=" + simplesNacional +
+                ", aliquota=" + aliquota +
+                ", valorFaturado=" + valorFaturado +
+                ", valorDeducao=" + valorDeducao +
+                ", baseCalculo=" + baseCalculo +
+                ", timestamp=" + timestamp +
+                '}';
+    }
+
     public static class Builder {
         private String numeroCredito;
         private String numeroNfse;

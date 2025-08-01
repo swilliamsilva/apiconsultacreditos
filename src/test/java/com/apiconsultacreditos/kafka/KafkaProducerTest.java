@@ -1,105 +1,108 @@
 package com.apiconsultacreditos.kafka;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
-
-import org.apache.kafka.clients.consumer.ConsumerConfig;
+import com.apiconsultacreditos.event.ConsultaCreditoEvent;
+import com.apiconsultacreditos.model.Credito;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
-import org.springframework.kafka.listener.ContainerProperties;
-import org.springframework.kafka.listener.KafkaMessageListenerContainer;
-import org.springframework.kafka.listener.MessageListener;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
-import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
-import org.springframework.test.context.ActiveProfiles;
-
-import com.apiconsultacreditos.config.TestKafkaConfig;
-
-@SpringBootTest(classes = {
-	    ConsultaCreditoProducer.class, // Apenas a classe que está sendo testada
-	    TestKafkaConfig.class           // Configuração de teste do Kafka
-	})
-	@ActiveProfiles("kafka-test")
-	@EmbeddedKafka(
-	    topics = "consulta-creditos-topic",
-	    brokerProperties = {
-	        "listeners=PLAINTEXT://localhost:0",
-	        "port=0"
-	    }
-	)
-	class KafkaProducerTest {
-
-	    @Autowired
-	    private ConsultaCreditoProducer producer;
-
-	    @Autowired
-	    private EmbeddedKafkaBroker embeddedKafkaBroker;
-
-	    private KafkaMessageListenerContainer<String, String> container;
-	    private BlockingQueue<ConsumerRecord<String, String>> records;
-
-	    @BeforeEach
-	    void setUp() {
-	        // Configurar consumidor de teste
-	        Map<String, Object> consumerProps = KafkaTestUtils.consumerProps(
-	            "test-group", "true", embeddedKafkaBroker
-	        );
-	        consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-	        consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-	        
-	        DefaultKafkaConsumerFactory<String, String> consumerFactory = 
-	            new DefaultKafkaConsumerFactory<>(consumerProps);
-	        
-	        ContainerProperties containerProperties = new ContainerProperties("consulta-creditos-topic");
-	        records = new LinkedBlockingQueue<>();
-	        
-	        container = new KafkaMessageListenerContainer<>(consumerFactory, containerProperties);
-	        container.setupMessageListener((MessageListener<String, String>) records::add);
-	        container.start();
-	        
-	        ContainerTestUtils.waitForAssignment(container, embeddedKafkaBroker.getPartitionsPerTopic());
-	    }
-
-	    @AfterEach
-	    void tearDown() {
-	        if (container != null) {
-	            container.stop();
-	        }
-	    }
-
-	    @Test
-	    void testKafkaPublishing() throws Exception {
-	        // Dados de teste
-	        String tipoConsulta = "CREDITO";
-	        String identificador = "123456";
-
-	        // Enviar mensagem
-	        producer.publicarConsulta(tipoConsulta, identificador);
-
-	        // Receber e validar mensagem
-	        ConsumerRecord<String, String> received = records.poll(10, TimeUnit.SECONDS);
-	        
-	        assertThat(received).isNotNull();
-	        assertEquals("consulta-creditos-topic", received.topic());
-	        
-	        // Verifica se contém os campos esperados
-	        assertThat(received.value())
-	            .contains("\"tipoConsulta\":\"CREDITO\"")
-	            .contains("\"identificador\":\"123456\"");
-	    }
-	}
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 
+
+import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+
+
+@SpringBootTest
+@Testcontainers
+@EmbeddedKafka(partitions = 1, topics = {"consulta-creditos-topic"})
+public class KafkaProducerTest {
+
+    @Autowired
+    private ConsultaCreditoProducer producer;
+
+    @Autowired
+    private EmbeddedKafkaBroker embeddedKafka;
+
+    private org.apache.kafka.clients.consumer.Consumer<String, ConsultaCreditoEvent> consumer;
+
+    @Container
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15")
+            .withDatabaseName("CreditoDB")
+            .withUsername("postgres")
+            .withPassword("postgres");
+
+    @DynamicPropertySource
+    static void overrideProps(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
+    }
+
+    @BeforeEach
+    void setupConsumer() {
+        Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("testGroup", "true", embeddedKafka);
+        DefaultKafkaConsumerFactory<String, ConsultaCreditoEvent> consumerFactory =
+                new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(), new org.springframework.kafka.support.serializer.JsonDeserializer<>(ConsultaCreditoEvent.class, false));
+
+        consumer = consumerFactory.createConsumer();
+        embeddedKafka.consumeFromAnEmbeddedTopic(consumer, "consulta-creditos-topic");
+
+    // Aguarda até que o consumer esteja pronto (no máximo 5s)
+    await().atMost(Duration.ofSeconds(5)).until(() -> consumer.subscription().contains("consulta-creditos-topic"));
+}
+   @AfterEach
+    void closeConsumer() {
+    if (consumer != null) {
+        consumer.close();
+    }
+}
+
+  
+
+
+
+
+
+    @Test
+    void devePublicarEventoKafkaComSucesso() {
+        Credito credito = Credito.builder()
+                .numeroCredito("CRED-12345")
+                .numeroNfse("NFSE-54321")
+                .dataConstituicao(LocalDate.of(2023, 7, 1))
+                .valorIssqn(new BigDecimal("150.00"))
+                .tipoCredito("ISSQN")
+                .simplesNacional(true)
+                .aliquota(new BigDecimal("2.50"))
+                .valorFaturado(new BigDecimal("10000.00"))
+                .valorDeducao(new BigDecimal("1000.00"))
+                .baseCalculo(new BigDecimal("9000.00"))
+                .build();
+
+        producer.publicarConsulta(credito);
+
+        ConsumerRecord<String, ConsultaCreditoEvent> record =
+                KafkaTestUtils.getSingleRecord(consumer, "consulta-creditos-topic", Duration.ofSeconds(10));
+
+        assertThat(record).isNotNull();
+        assertThat(record.value().getNumeroCredito()).isEqualTo("CRED-12345");
+        assertThat(record.value().getValorIssqn()).isEqualByComparingTo("150.00");
+    }
+}

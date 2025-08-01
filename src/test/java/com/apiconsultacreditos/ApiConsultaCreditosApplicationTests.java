@@ -1,29 +1,24 @@
 package com.apiconsultacreditos;
 
+import com.apiconsultacreditos.model.Credito;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
-@SpringBootTest
+@SpringBootTest(properties = {
+    "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration"
+})
 @ActiveProfiles("test")
 class ApiConsultaCreditosApplicationTests {
 
-    @Configuration
-    static class TestConfig {
-        @Bean
-        @Primary
-        public KafkaTemplate<?, ?> kafkaTemplate() {
-            return Mockito.mock(KafkaTemplate.class);
-        }
-    }
+    // Adiciona um mock do KafkaTemplate para resolver a dependência
+    @MockBean
+    private KafkaTemplate<String, Credito> kafkaTemplate;
 
     @Test
     void contextLoads() {
-        // Teste vazio apenas para carregar contexto
+        // Teste vazio apenas para verificar carga do contexto
     }
 }

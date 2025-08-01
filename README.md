@@ -28,8 +28,10 @@ Conta com mensageria Kafka, testes automatizados e suporte a PostgreSQL e MariaD
 
 ### Comandos de execução 
 
-- Executar via Docker Compose (recomendado)
-  
+- Executar via Docker Compose 
+    
+     docker ps
+
      docker-compose up -d   
      
    Isso iniciará:
@@ -43,9 +45,26 @@ Conta com mensageria Kafka, testes automatizados e suporte a PostgreSQL e MariaD
     mvn spring-boot:run
   
 - Rodar testes unitários e de integração
+   
+        mvn test
 
-    mvn test
-  
+        
+   Para usar PostgreSQL local:
+
+     mvn test -Dspring.profiles.active=test -Dspring.config.location=classpath:/application-postgres.properties
+
+     ./mvnw test -Dspring.test.profiles.active=test,postgres
+   ou no powershel
+   
+      mvn test "-Dspring.profiles.active=test -Dspring.config.location=classpath:/application-postgres.properties"
+      
+      mvn test "-Dspring.test.profiles.active=test,postgres" 
+     
+ ou teste automático
+ 
+     ./mvnw test -P postgres-test
+      mvn test -P postgres-test     
+      
 - Testes incluídos  
     
     CreditoServiceTest → Testes unitários com Mockito    
@@ -83,15 +102,20 @@ Execute os comandos abaixo em seu terminal, CLI do PostgreSQL ou via PgAdmin:
 
 sql
 
-CREATE DATABASE creditosdb;
+CREATE DATABASE CreditoDB;
 -- (opcional) Criação de usuário
 
--- CREATE USER postgres WITH PASSWORD 'senha';
+-- CREATE USER postgres WITH PASSWORD 'suasenha';
 
 -- Atribuição de permissões (se necessário)
 
--- GRANT ALL PRIVILEGES ON DATABASE creditosdb TO postgres;
+-- GRANT ALL PRIVILEGES ON DATABASE creditodb TO postgres;
 
  
 
 Veja o [Script das tabelas do backend](README-SCRIPT-SQL.md)
+
+### Atualizações no projeto CI/CD
+
+Para fazer atualizações [veja este documento: ](README-GIT-FLOW.md) 
+

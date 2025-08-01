@@ -12,9 +12,6 @@ public class Credito {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(name = "identificador")
-    private String identificador;
-    
     private String numeroCredito;
     private String numeroNfse;
     private LocalDate dataConstituicao;
@@ -25,85 +22,32 @@ public class Credito {
     private BigDecimal valorFaturado;
     private BigDecimal valorDeducao;
     private BigDecimal baseCalculo;
-    private String tipoConsulta;
- 
-    // Construtor privado para o builder
-    // Construtor padrão (obrigatório para JPA)
-    public Credito() {
-    }
-    
- // Método builder estático
-    public static Builder builder() {
-        return new Builder();
-    }
 
-    // Classe Builder
-    public static class Builder {
-        private final Credito credito = new Credito();
+    public Credito() {}
 
-        public Builder numeroCredito(String numeroCredito) {
-            credito.setNumeroCredito(numeroCredito);
-            return this;
-        }
-
-        public Builder numeroNfse(String numeroNfse) {
-            credito.setNumeroNfse(numeroNfse);
-            return this;
-        }
-
-        public Builder dataConstituicao(LocalDate dataConstituicao) {
-            credito.setDataConstituicao(dataConstituicao);
-            return this;
-        }
-
-        public Builder valorIssqn(BigDecimal valorIssqn) {
-            credito.setValorIssqn(valorIssqn);
-            return this;
-        }
-
-        public Builder tipoCredito(String tipoCredito) {
-            credito.setTipoCredito(tipoCredito);
-            return this;
-        }
-
-        public Builder simplesNacional(boolean simplesNacional) {
-            credito.setSimplesNacional(simplesNacional);
-            return this;
-        }
-
-        public Builder aliquota(BigDecimal aliquota) {
-            credito.setAliquota(aliquota);
-            return this;
-        }
-
-        public Builder valorFaturado(BigDecimal valorFaturado) {
-            credito.setValorFaturado(valorFaturado);
-            return this;
-        }
-
-        public Builder valorDeducao(BigDecimal valorDeducao) {
-            credito.setValorDeducao(valorDeducao);
-            return this;
-        }
-
-        public Builder baseCalculo(BigDecimal baseCalculo) {
-            credito.setBaseCalculo(baseCalculo);
-            return this;
-        }
-
-        public Builder tipoConsulta(String tipoConsulta) {
-            credito.setTipoConsulta(tipoConsulta);
-            return this;
-        }
-
-        public Builder identificador(String identificador) {
-            credito.setIdentificador(identificador);
-            return this;
-        }
-
-        public Credito build() {
-            return credito;
-        }
+    // Construtor completo
+    public Credito(
+        String numeroCredito,
+        String numeroNfse,
+        LocalDate dataConstituicao,
+        BigDecimal valorIssqn,
+        String tipoCredito,
+        boolean simplesNacional,
+        BigDecimal aliquota,
+        BigDecimal valorFaturado,
+        BigDecimal valorDeducao,
+        BigDecimal baseCalculo
+    ) {
+        this.numeroCredito = numeroCredito;
+        this.numeroNfse = numeroNfse;
+        this.dataConstituicao = dataConstituicao;
+        this.valorIssqn = valorIssqn;
+        this.tipoCredito = tipoCredito;
+        this.simplesNacional = simplesNacional;
+        this.aliquota = aliquota;
+        this.valorFaturado = valorFaturado;
+        this.valorDeducao = valorDeducao;
+        this.baseCalculo = baseCalculo;
     }
 
     // Getters e Setters para todos os campos
@@ -195,21 +139,85 @@ public class Credito {
         this.baseCalculo = baseCalculo;
     }
 
-    public String getTipoConsulta() {
-        return tipoConsulta;
+ public static Builder builder() {
+        return new Builder();
     }
 
-    public void setTipoConsulta(String tipoConsulta) {
-        this.tipoConsulta = tipoConsulta;
-    }
+    public static class Builder {
+        private String numeroCredito;
+        private String numeroNfse;
+        private LocalDate dataConstituicao;
+        private BigDecimal valorIssqn;
+        private String tipoCredito;
+        private boolean simplesNacional;
+        private BigDecimal aliquota;
+        private BigDecimal valorFaturado;
+        private BigDecimal valorDeducao;
+        private BigDecimal baseCalculo;
 
-    public String getIdentificador() {
-        return identificador;
-    }
+        public Builder numeroCredito(String numeroCredito) {
+            this.numeroCredito = numeroCredito;
+            return this;
+        }
 
-    public void setIdentificador(String identificador) {
-        this.identificador = identificador;
-    }
+        public Builder numeroNfse(String numeroNfse) {
+            this.numeroNfse = numeroNfse;
+            return this;
+        }
 
-	
+        public Builder dataConstituicao(LocalDate dataConstituicao) {
+            this.dataConstituicao = dataConstituicao;
+            return this;
+        }
+
+        public Builder valorIssqn(BigDecimal valorIssqn) {
+            this.valorIssqn = valorIssqn;
+            return this;
+        }
+
+        public Builder tipoCredito(String tipoCredito) {
+            this.tipoCredito = tipoCredito;
+            return this;
+        }
+
+        public Builder simplesNacional(boolean simplesNacional) {
+            this.simplesNacional = simplesNacional;
+            return this;
+        }
+
+        public Builder aliquota(BigDecimal aliquota) {
+            this.aliquota = aliquota;
+            return this;
+        }
+
+        public Builder valorFaturado(BigDecimal valorFaturado) {
+            this.valorFaturado = valorFaturado;
+            return this;
+        }
+
+        public Builder valorDeducao(BigDecimal valorDeducao) {
+            this.valorDeducao = valorDeducao;
+            return this;
+        }
+
+        public Builder baseCalculo(BigDecimal baseCalculo) {
+            this.baseCalculo = baseCalculo;
+            return this;
+        }
+
+        public Credito build() {
+            Credito credito = new Credito();
+            credito.setNumeroCredito(this.numeroCredito);
+            credito.setNumeroNfse(this.numeroNfse);
+            credito.setDataConstituicao(this.dataConstituicao);
+            credito.setValorIssqn(this.valorIssqn);
+            credito.setTipoCredito(this.tipoCredito);
+            credito.setSimplesNacional(this.simplesNacional);
+            credito.setAliquota(this.aliquota);
+            credito.setValorFaturado(this.valorFaturado);
+            credito.setValorDeducao(this.valorDeducao);
+            credito.setBaseCalculo(this.baseCalculo);
+            return credito;
+        }
+    }
 }

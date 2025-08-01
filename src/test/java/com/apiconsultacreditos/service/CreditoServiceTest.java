@@ -7,6 +7,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,7 +15,8 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class) // Remove a necessidade do contexto Spring
+@ExtendWith(MockitoExtension.class)
+@ActiveProfiles("test")
 class CreditoServiceTest {
 
     @Mock
@@ -43,10 +45,24 @@ class CreditoServiceTest {
         when(creditoRepository.findByNumeroCredito("123456"))
             .thenReturn(Optional.of(mockCredito));
         
-        Credito result = service.consultarPorNumeroCredito("123456");
+        // CORREÇÃO: O serviço retorna Optional, então precisamos extrair o valor
+        Optional<Credito> result = service.consultarPorNumeroCredito("123456");
         
-        assertNotNull(result, "O crédito não deveria ser nulo");
-        assertEquals("123456", result.getNumeroCredito(), 
+        // Verificações corretas com Optional
+        assertTrue(result.isPresent(), "Deveria ter encontrado um crédito");
+        Credito credito = result.get();
+        assertEquals("123456", credito.getNumeroCredito(), 
             "Número do crédito diferente do esperado");
+    }
+    
+    @Test
+    void testConsultarPorNumeroCredito_NaoEncontrado() {
+        when(creditoRepository.findByNumeroCredito("000000"))
+            .thenReturn(Optional.empty());
+        
+        Optional<Credito> result = service.consultarPorNumeroCredito("000000");
+        
+        // Verifica que não foi encontrado
+        assertTrue(result.isEmpty(), "Não deveria ter encontrado nenhum crédito");
     }
 }

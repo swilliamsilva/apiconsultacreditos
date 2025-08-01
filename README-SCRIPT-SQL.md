@@ -1,3 +1,44 @@
+No docker-compose para ver o banco de dados
+docker exec -it creditos-db psql -U postgres -d CreditoDB
+
+\dt para ver as tabelas
+\q  para sair
+
+Senha do Banco 
+
+Ela fica armazenada em um arquivo .env na raiz da aplicação
+
+# .env
+DB_PASSWORD=suasenha
+KAFKA_ADMIN_PASSWORD=outrasenha
+
+        spring.datasource.password=${DB_PASSWORD} exige uma variável de ambiente.
+
+   
+    Defina a variável de ambiente antes de executar:
+
+        Linux/macOS (Terminal):
+   
+
+        export DB_PASSWORD=suasenha
+        mvn spring-boot:run
+
+        Windows (CMD):
+
+
+        set DB_PASSWORD=suasenha
+        mvn spring-boot:run
+
+        Windows (PowerShell):
+        powershell
+
+        $env:DB_PASSWORD = "suasenha"
+        mvn spring-boot:run
+
+
+
+
+
 CREATE TABLE credito (
   id BIGSERIAL PRIMARY KEY,
   numero_credito VARCHAR(50) NOT NULL,
