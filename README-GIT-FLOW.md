@@ -1,34 +1,3 @@
-### Fluxo Ideal 
-==========
-    Desenvolvimento diário:
-    git bash
-
-# Trabalhe na branch develop
-git checkout develop
-git add .
-git commit -m "Meu commit diário"
-git push origin develop
-
-Quando liberar nova versão:
-git bash
-
-# Inicie o release SEMPRE com versão nova (ex: v1.0.1)
-git flow release start v1.0.1
-
-# Finalize o release (isso mergeia em main + cria tag)
-git flow release finish -m "Release v1.0.1" v1.0.1
-
-# Envie TUDO para o GitHub
-git push origin main develop --tags
-
-
-
-
-
-
-==INSTRUÇÃO=====================================
-
-
 ## Guia de Uso: Git Flow - apiconsultacreditos
 
 Este documento descreve o fluxo de trabalho com Git Flow utilizado no projeto apiconsultacreditos.
@@ -84,7 +53,9 @@ Esse comando faz merge automático para develop e deleta a branch feature.
     git push origin develop
 
 A branch develop é onde todo o código é integrado e testado.
-
+===========
+No DIA A DIA
+=========
 # Criando um Release
 
      git flow release start 1.0.0
